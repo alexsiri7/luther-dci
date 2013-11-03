@@ -28,7 +28,7 @@ gem 'turbolinks'
 gem 'simple_form'
 gem 'better_errors'
 gem 'binding_of_caller'
-
+gem 'rspec'
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 1.2'
 
