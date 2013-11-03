@@ -8,8 +8,8 @@ shared_context 'context test' do
     subject.call
   end
 
-  let(:success) { -> context {} }
-  let(:failure) { -> context {} }
+  let(:success) { double("Success", call: nil) }
+  let(:failure) { double("Failure", call: nil) }
   let(:all_params) {
     params.merge({
       success: success,
@@ -20,7 +20,7 @@ end
 
 shared_examples 'calls callback' do |callback|
   it "calls #{callback}" do
-    (send callback).should_receive(:call).with(subject)
+    (send callback).should_receive(:call).with(subject, anything)
     call_method
   end
 end

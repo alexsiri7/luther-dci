@@ -26,10 +26,11 @@ class AuctionsController < ApplicationController
     AuctionBidder.call(
         biddable_id: params[:id],
         bidding_params: bid_params,
-        success: proc {|context|
-          flash[:notice] = 'Your bid has been recorded'
+        success: proc {|context, message|
+          flash[:notice] = message
           redirect_to context.biddable},
-        failure: proc {|context|
+        failure: proc {|context, message|
+          flash[:error] = message
           @auction = AuctionPresenter.new context.biddable
           @bid = context.bidding
           render :show
@@ -39,7 +40,7 @@ class AuctionsController < ApplicationController
   private
 
   def create_params
-    params.require(:auction).permit(:name)
+    params.require(:auction).permit(:name, :buying_price)
   end
 
   def bid_params

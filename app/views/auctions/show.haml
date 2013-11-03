@@ -1,4 +1,9 @@
 %h1=@auction.name
-%p=@auction.best_bid
+%p
+  Buying price
+  =@auction.buying_price
+%p
+  Best bid:
+  =@auction.best_bid
 =simple_form_for @bid, url: :bid_auction do |bid|
   =bid.input :amount

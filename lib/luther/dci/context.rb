@@ -16,6 +16,7 @@ class Luther::DCI::Context < SimpleDelegator
   end
 
   alias :params :__getobj__
+  attr_accessor :last_exception
   def initialize(params)
     super(OpenStruct.new params)
     assign_roles

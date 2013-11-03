@@ -1,5 +1,7 @@
 class AuctionBidder < Luther::DCI::Context
 
+  class BiddingError < StandardError; end
+
   role :bidding_params do
     def create_bid
       Bid.new self.merge(auction: context.biddable.player)
@@ -8,16 +10,21 @@ class AuctionBidder < Luther::DCI::Context
 
   role :bidding do
     def validate_and_save
-      greater_than_last_bidding && save
+      greater_than_last_bidding
+      does_not_exceed_buying_price
+      save!
     end
 
     def greater_than_last_bidding
-      if amount >= context.biddable.last_bid_amount
+      if amount > context.biddable.last_bid_amount
         true
       else
-        self.errors.add :amount, "You need to bid more than the previous bidder."
-        false
+        fail BiddingError, "You need to outbid the previous bidder."
       end
+    end
+
+    def does_not_exceed_buying_price
+      fail BiddingError, "You can't exceed the buying price" unless context.biddable.buying_price >= amount
     end
   end
 
@@ -30,10 +37,11 @@ class AuctionBidder < Luther::DCI::Context
   def call
     self.biddable = Auction.find biddable_id
     self.bidding = bidding_params.create_bid
-    if bidding.validate_and_save
-      success.call(self)
-    else
-      failure.call(self)
+    begin
+      bidding.validate_and_save
+      success.call(self, 'Your bid has been recorded')
+    rescue BiddingError, ActiveRecord::RecordInvalid => e
+      failure.call(self, e.message)
     end
   end
 

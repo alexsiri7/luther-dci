@@ -1,9 +1,11 @@
 require 'spec_helper.rb'
 require 'shared/context_test.rb'
 
+# class ActiveRecord::RecordInvalid < StandardError; end
+
 shared_examples 'success' do
   it 'creates the bid' do
-    bid.should_receive(:save).once
+    bid.should_receive(:save!).once
     call_method
   end
 
@@ -13,7 +15,7 @@ end
 
 shared_examples 'failure' do
   it 'does not create the bid' do
-    bid.should_not_receive(:save)
+    bid.should_not_receive(:save!)
     call_method
   end
 
@@ -29,22 +31,19 @@ describe AuctionBidder do
     { biddable_id: 1,
       bidding_params: { amount: amount } }
   end
-  let(:bid) { double() }
-  let(:auction) { double() }
-  let(:errors) { double() }
+  let(:class_mock) {double('class_mock', i18n_scope: nil)}
+  let(:bid) { double(amount: amount, save!: true, errors: errors, class: class_mock) }
+  let(:auction) { double(buying_price: buying_price, bids: previous_bids) }
+  let(:errors) { double(add: nil, full_messages: []) }
+  let(:buying_price) { 50 }
+  let(:previous_bids) { [] }
   before do
     Bid.stub(:new) { bid }
-    bid.stub(:amount) { amount }
-    bid.stub(:save) { true }
-    bid.stub(:errors) { errors }
-    errors.stub(:add)
     Auction.stub(:find).with(1) { auction }
-    auction.stub(:bids) { previous_bids }
   end
   context 'when the bidding data is invalid' do
-    let(:previous_bids) { [] }
     before do
-      bid.stub(:save) {false}
+      bid.stub(:save!) { raise ActiveRecord::RecordInvalid.new(bid) }
     end
 
     include_examples 'does not call callback', :success
@@ -67,4 +66,24 @@ describe AuctionBidder do
 
     include_examples 'failure'
   end
+
+  context 'when the bidding is equal to the max' do
+    let(:previous_bids) {[double(amount: 10)]}
+
+    include_examples 'failure'
+  end
+
+
+  context 'when the bidding is over the buying price' do
+    let(:amount) { 60 }
+
+    include_examples 'failure'
+  end
+
+  context 'when the bidding is equal to the buying price' do
+    let(:amount) { 50 }
+
+    include_examples 'success'
+  end
+
 end
