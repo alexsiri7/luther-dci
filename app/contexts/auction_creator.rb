@@ -1,18 +1,11 @@
-class AuctionCreator < DCI::Context
-  def self.call *params
-    auction_creator = self.new(*params).call
-  end
-
-  def initialize params, listener
-    @params, @listener = params, listener
-  end
+class AuctionCreator < Luther::DCI::Context
 
   def call
-    @auction = Auction.new @params
-    if @auction.save
-      @listener.creator_success
+    self.params.auction = Auction.new auction_params
+    if auction.save
+      success.call self
     else
-      @listener.creator_failure
+      failure.call self
     end
   end
 

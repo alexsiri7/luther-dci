@@ -8,7 +8,13 @@ class AuctionsController < ApplicationController
   end
 
   def create
-    AuctionCreator.call create_params, self
+    AuctionCreator.call(
+      auction_params: create_params,
+      success: proc {|context| redirect_to context.auction},
+      failure: proc {|context|
+        @auction = context.auction
+        render :new
+      })
   end
 
   def show
@@ -17,26 +23,17 @@ class AuctionsController < ApplicationController
   end
 
   def bid
-    AuctionBidder.call bid_params, params[:id], self
-  end
-
-  def auction_success(auction)
-    redirect_to auction
-  end
-
-  def auction_failure auction
-    @auction = auction
-    render :new
-  end
-
-  def bidder_success(bid, auction)
-    redirect_to auction
-  end
-
-  def bidder_failure(bid, auction)
-    @auction = auction
-    @bid = bid
-    render :show
+    AuctionBidder.call(
+        biddable_id: params[:id],
+        bidding_params: bid_params,
+        success: proc {|context|
+          flash[:notice] = 'Your bid has been recorded'
+          redirect_to context.biddable},
+        failure: proc {|context|
+          @auction = AuctionPresenter.new context.biddable
+          @bid = context.bidding
+          render :show
+        })
   end
 
   private
