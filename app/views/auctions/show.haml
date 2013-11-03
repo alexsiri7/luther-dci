@@ -1,0 +1,4 @@
+%h1=@auction.name
+%p=@auction.best_bid
+=simple_form_for @bid, url: :bid_auction do |bid|
+  =bid.input :amount
