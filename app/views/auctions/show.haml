@@ -15,12 +15,18 @@
   %dd=@auction.buying_price
   %dt
     %strong
+      = model_class.human_attribute_name(:state)
+      =':'
+  %dd=@auction.state
+  %dt
+    %strong
       = model_class.human_attribute_name(:best_bid)
       =':'
   %dd= @auction.best_bid
-=simple_form_for @bid, url: :bid_auction do |bid|
-  =bid.input :amount
-  =bid.submit :class => 'btn'
+=@auction.new_bid_form do
+  =simple_form_for @bid, url: :bid_auction do |bid|
+    =bid.input :amount
+    =bid.submit :class => 'btn'
 .form-actions
   = link_to t('.back', :default => t("helpers.links.back")),
               auctions_path, :class => 'btn'

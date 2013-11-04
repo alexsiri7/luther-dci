@@ -33,13 +33,14 @@ describe AuctionBidder do
   end
   let(:class_mock) {double('class_mock', i18n_scope: nil)}
   let(:bid) { double(amount: amount, save!: true, errors: errors, class: class_mock) }
-  let(:auction) { double(buying_price: buying_price, bids: previous_bids) }
+  let(:auction) { double(buying_price: buying_price, bids: previous_bids, open?: true) }
   let(:errors) { double(add: nil, full_messages: []) }
   let(:buying_price) { 50 }
   let(:previous_bids) { [] }
   before do
     Bid.stub(:new) { bid }
     Auction.stub(:find).with(1) { auction }
+    bid.stub(:transaction).and_yield
   end
   context 'when the bidding data is invalid' do
     before do
@@ -82,8 +83,23 @@ describe AuctionBidder do
 
   context 'when the bidding is equal to the buying price' do
     let(:amount) { 50 }
+    before do
+      auction.stub(:close!)
+    end
 
     include_examples 'success'
+    it 'closes the bid' do
+      auction.should_receive(:close!)
+
+      call_method
+    end
+  end
+
+  context 'when the auction is not open' do
+    before do
+      auction.stub(:open?) {false}
+    end
+    include_examples 'failure'
   end
 
 end

@@ -11,13 +11,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20131103224055) do
+ActiveRecord::Schema.define(version: 20131104082412) do
 
   create_table "auctions", force: true do |t|
     t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
     t.float    "buying_price"
+    t.string   "state",        default: "open"
   end
 
   create_table "bids", force: true do |t|

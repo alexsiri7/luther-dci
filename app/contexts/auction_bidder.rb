@@ -12,7 +12,9 @@ class AuctionBidder < Luther::DCI::Context
     def validate_and_save
       greater_than_last_bidding
       does_not_exceed_buying_price
-      save!
+      transaction do
+        context.biddable.add_bid self
+      end
     end
 
     def greater_than_last_bidding
@@ -31,6 +33,13 @@ class AuctionBidder < Luther::DCI::Context
   role :biddable do
     def last_bid_amount
       bids.last.try(:amount).to_i
+    end
+    def add_bid(new_bid)
+      fail BiddingError, 'This auction is not closed' unless open?
+      new_bid.save!
+      if new_bid.amount==buying_price
+        close!
+      end
     end
   end
 
