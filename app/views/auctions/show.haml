@@ -1,9 +1,27 @@
-%h1=@auction.name
-%p
-  Buying price
-  =@auction.buying_price
-%p
-  Best bid:
-  =@auction.best_bid
+-model_class = Auction
+.page-header
+  %h1=t '.title', :default => model_class.model_name.human.titleize
+
+%dl.dl-horizontal
+  %dt
+    %strong
+      = model_class.human_attribute_name(:name)
+      =':'
+  %dd= @auction.name
+  %dt
+    %strong
+      = model_class.human_attribute_name(:buying_price)
+      =':'
+  %dd=@auction.buying_price
+  %dt
+    %strong
+      = model_class.human_attribute_name(:best_bid)
+      =':'
+  %dd= @auction.best_bid
 =simple_form_for @bid, url: :bid_auction do |bid|
   =bid.input :amount
+  =bid.submit :class => 'btn'
+.form-actions
+  = link_to t('.back', :default => t("helpers.links.back")),
+              auctions_path, :class => 'btn'
+
